@@ -36,6 +36,7 @@ import org.sonar.db.MyBatis;
 import org.sonar.db.permission.CountByProjectAndPermissionDto;
 import org.sonar.db.permission.GroupWithPermissionDto;
 import org.sonar.db.permission.OldPermissionQuery;
+import org.sonar.db.permission.PermissionTemplateQuery;
 import org.sonar.db.permission.UserWithPermissionDto;
 
 import static java.lang.String.format;
@@ -55,15 +56,24 @@ public class PermissionTemplateDao implements Dao {
     this.system = system;
   }
 
-  /**
-   * @return a paginated list of users.
-   */
+  @Deprecated
   public List<UserWithPermissionDto> selectUsers(DbSession session, OldPermissionQuery query, Long templateId, int offset, int limit) {
     return mapper(session).selectUsers(query, templateId, new RowBounds(offset, limit));
   }
 
-  public int countUsers(DbSession session, OldPermissionQuery query, Long templateId) {
-    return mapper(session).countUsers(query, templateId);
+  /**
+   * @return a paginated list of user logins.
+   */
+  public List<String> selectLoginsByPermissionQuery(DbSession session, PermissionTemplateQuery query, Long templateId) {
+    return mapper(session).selectLoginsByPermissionQuery(query, templateId, new RowBounds(query.getPageOffset(), query.getPageSize()));
+  }
+
+  public int countUsersByQuery(DbSession session, PermissionTemplateQuery query, Long templateId) {
+    return mapper(session).countUsersByQuery(query, templateId);
+  }
+
+  public List<PermissionTemplateUserDto> selectUserPermissionsByLogins(DbSession dbSession, List<String> logins) {
+    return mapper(dbSession).selectUserPermissionsByLogins(logins);
   }
 
   /**
@@ -200,6 +210,7 @@ public class PermissionTemplateDao implements Dao {
   public void groupsCountByTemplateIdAndPermission(DbSession dbSession, List<Long> templateIds, ResultHandler resultHandler) {
     Map<String, Object> parameters = new HashMap<>(2);
     parameters.put(ANYONE_GROUP_PARAMETER, ANYONE);
+
     executeLargeInputsWithoutOutput(
       templateIds,
       partitionedTemplateIds -> {

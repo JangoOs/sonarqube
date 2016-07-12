@@ -27,6 +27,7 @@ import org.apache.ibatis.session.ResultHandler;
 import org.apache.ibatis.session.RowBounds;
 import org.sonar.db.permission.GroupWithPermissionDto;
 import org.sonar.db.permission.OldPermissionQuery;
+import org.sonar.db.permission.PermissionTemplateQuery;
 import org.sonar.db.permission.UserWithPermissionDto;
 
 /**
@@ -67,7 +68,11 @@ public interface PermissionTemplateMapper {
 
   PermissionTemplateDto selectByName(String name);
 
-  int countUsers(@Param("query") OldPermissionQuery query, @Param("templateId") long templateId);
+  List<String> selectLoginsByPermissionQuery(@Param("query") PermissionTemplateQuery query, @Param("templateId") long templateId, RowBounds rowBounds);
+
+  int countUsersByQuery(@Param("query") PermissionTemplateQuery query, @Param("templateId") long templateId);
+
+  List<PermissionTemplateUserDto> selectUserPermissionsByLogins(@Param("logins") List<String> logins);
 
   int countGroups(@Param("query") OldPermissionQuery query, @Param("templateId") long templateId, @Param("anyoneGroup") String anyoneGroup,
     @Param("projectAdminPermission") String projectAdminPermission, @Nullable @Param("groupName") String groupName);
